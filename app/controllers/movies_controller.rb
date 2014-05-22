@@ -7,8 +7,12 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if params.has_key?("sort")
+    if params.has_key?("sort_by_title")
       @movies = Movie.all.sort { |m1, m2| m1.title <=> m2.title }
+    elsif params.has_key?("sort_by_release_date")
+      @movies = Movie.
+                all.
+                sort { |m1, m2| m1.release_date <=> m2.release_date }
     else
       @movies = Movie.all
     end
