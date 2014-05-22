@@ -7,10 +7,10 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if params.has_key?("sort_by_title")
+    if params.has_key?(:sort) && params[:sort] == 'title'
       @movies = Movie.all.sort { |m1, m2| m1.title <=> m2.title }
       @sortby = 'title' # Aids in CSS cell highlighting
-    elsif params.has_key?("sort_by_release_date")
+    elsif params.has_key?(:sort) && params[:sort] == 'release_date'
       @movies = Movie.
                 all.
                 sort { |m1, m2| m1.release_date <=> m2.release_date }
