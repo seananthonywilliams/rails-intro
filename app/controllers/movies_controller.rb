@@ -19,7 +19,11 @@ class MoviesController < ApplicationController
       @movies = Movie.all
     end
 
-    @all_ratings = ['G','PG','PG-13','R']
+    @all_ratings = []
+    Movie.all.each do |m|
+      @all_ratings.push(m.rating)
+    end
+    @all_ratings.uniq!.sort! { |r1, r2| r1 <=> r2 }
   end
 
   def new
