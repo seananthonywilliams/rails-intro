@@ -17,10 +17,16 @@ class MoviesController < ApplicationController
     @ratings = Hash.new
     @all_ratings.each do |k|
       # Set every rating to checked initially
-      if ! params.has_key?('ratings')
+      if ! params.has_key?('ratings') && ! session.has_key?(:ratings)
         @ratings[k] = true
-      else
+      elsif params.has_key?('ratings') # use params hash
         if params['ratings'].keys.include?(k)
+          @ratings[k] = true
+        else
+          @ratings[k] = false
+        end
+      else # defer to session hash
+        if session[:ratings].keys.include?(k)
           @ratings[k] = true
         else
           @ratings[k] = false
@@ -32,20 +38,37 @@ class MoviesController < ApplicationController
     ratings_arr = []
     if params.has_key?('ratings')
       ratings_arr = params['ratings'].keys
+      session[:ratings] = params['ratings']
+    elsif session.has_key?(:ratings)
+      ratings_arr = session[:ratings].keys
     else
       ratings_arr = @all_ratings
     end
 
-    if params.has_key?(:sort) && params[:sort] == 'title'
-      @movies = Movie.
-                where(rating: ratings_arr).
-                sort { |m1, m2| m1.title <=> m2.title }
-      @sortby = 'title' # Aids in CSS cell highlighting
-    elsif params.has_key?(:sort) && params[:sort] == 'release_date'
+    # TODO: Refactor this ugly logic.
+    # Basically, the params should override the session information
+    if (params.has_key?(:sort) && params[:sort] == 'title') \
+        || (session.has_key?(:sort) && session[:sort] == 'title')
+      if (params.has_key?(:sort) && params[:sort] == 'release_date')
+        @movies = Movie.
+                  where(rating: ratings_arr).
+                  sort { |m1, m2| m1.release_date <=> m2.release_date}
+        @sortby = 'release_date' # Aids in CSS cell highlighting
+        session[:sort] = 'release_date'
+      else
+        @movies = Movie.
+                  where(rating: ratings_arr).
+                  sort { |m1, m2| m1.title <=> m2.title }
+        @sortby = 'title' # Aids in CSS cell highlighting
+        session[:sort] = 'title'
+        end
+    elsif (params.has_key?(:sort) && params[:sort] == 'release_date') \
+        || (session.has_key?(:sort) && session[:sort] == 'release_date')
       @movies = Movie.
                 where(rating: ratings_arr).
                 sort { |m1, m2| m1.release_date <=> m2.release_date }
       @sortby = 'release_date' # Aids in CSS cell highlighting
+      session[:sort] = 'release_date'
     else
       @movies = Movie.
                 where(rating: ratings_arr)
